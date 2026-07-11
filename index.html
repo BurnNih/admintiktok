@@ -22,7 +22,7 @@
 </head>
 <body>
 <main class="app">
-  <div class="brand"><div class="eyebrow">Sales Calculator</div><h1>Kalkulator Admin TikTok</h1><p class="subtitle">by NJP</p></div>
+  <div class="brand"><div class="eyebrow">NJP NJP NJP</div><h1>Kalkulator Admin TikTok</h1><p class="subtitle">Hitung hasil bersih atau cari harga jual dari target bersih.</p></div>
 
   <div class="tabs">
     <button class="tab active" data-mode="sale">Harga Jual → Bersih</button>
@@ -33,14 +33,14 @@
     <div class="card">
       <label for="saleInput">Harga Jual</label>
       <div class="money-input"><span class="prefix">Rp</span><input id="saleInput" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-      <div class="formula"><span>Admin: 11,13% − Rp21.250</span><span id="effectiveRate">0%</span></div>
+      <div class="formula"><span>Admin: 11,13% + Rp21.250</span><span id="effectiveRate">0%</span></div>
     </div>
     <div class="results">
       <div class="result main"><div class="result-label">Bersih Diterima</div><div class="result-value" id="saleNet">Rp0</div></div>
       <div class="result"><div class="result-label">Total Biaya Admin</div><div class="result-value" id="saleAdmin">Rp0</div></div>
       <div class="breakdown">
         <div class="mini"><div class="mini-label">11,13% dari harga</div><div class="mini-value" id="salePercent">Rp0</div></div>
-        <div class="mini"><div class="mini-label">Potongan tetap</div><div class="mini-value">− Rp21.250</div></div>
+        <div class="mini"><div class="mini-label">Potongan tetap</div><div class="mini-value">+ Rp21.250</div></div>
       </div>
     </div>
   </section>
@@ -61,7 +61,7 @@
     </div>
   </section>
 
-  <div class="footer">Rumus: (Harga Jual × 11,13%) − Rp21.250</div>
+  <div class="footer">Rumus: (Harga Jual × 11,13%) + Rp21.250</div>
 </main>
 <script>
 const RATE=.1113, DISCOUNT=21250;
@@ -73,7 +73,7 @@ const saleInput=document.getElementById('saleInput');
 saleInput.addEventListener('input',()=>{
   const price=formatInput(saleInput);
   const percent=price*RATE;
-  const admin=price>0?Math.max(0,percent-DISCOUNT):0;
+  const admin=price>0?percent+DISCOUNT:0;
   const net=price-admin;
   document.getElementById('salePercent').textContent=rupiah(percent);
   document.getElementById('saleAdmin').textContent=rupiah(admin);
@@ -84,11 +84,11 @@ saleInput.addEventListener('input',()=>{
 const targetInput=document.getElementById('targetInput');
 targetInput.addEventListener('input',()=>{
   const target=formatInput(targetInput);
-  // target = sale - (sale*RATE - DISCOUNT) = sale*(1-RATE) + DISCOUNT
-  // sale = (target - DISCOUNT)/(1-RATE)
-  let sale=target>DISCOUNT?(target-DISCOUNT)/(1-RATE):target;
+  // target = sale - (sale*RATE + DISCOUNT) = sale*(1-RATE) - DISCOUNT
+  // sale = (target + DISCOUNT)/(1-RATE)
+  let sale=target>0?(target+DISCOUNT)/(1-RATE):0;
   sale=Math.ceil(sale);
-  const admin=sale>0?Math.max(0,sale*RATE-DISCOUNT):0;
+  const admin=sale>0?sale*RATE+DISCOUNT:0;
   const net=sale-admin;
   document.getElementById('targetSale').textContent=rupiah(sale);
   document.getElementById('targetAdmin').textContent=rupiah(admin);
