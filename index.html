@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#08080b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TikTok Admin" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Kalkulator Admin TikTok</title>
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--bg:#08080b;--card:#141419;--card2:#1b1b22;--text:#f7f7f8;--muted:#9696a3;--cyan:#25f4ee;--pink:#fe2c55;--green:#42e58d;--border:rgba(255,255,255,.08)}
+    body{margin:0;min-height:100vh;min-height:100dvh;background:radial-gradient(circle at 15% 0%,rgba(37,244,238,.12),transparent 28%),radial-gradient(circle at 90% 15%,rgba(254,44,85,.10),transparent 25%),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;display:flex;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom))}
+    .app{width:100%;max-width:460px}.brand{margin:8px 0 22px}.eyebrow{color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px}h1{margin:0;font-size:30px;line-height:1.08;letter-spacing:-1px}.subtitle{margin:9px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+    .tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--card);border:1px solid var(--border);padding:5px;border-radius:16px;margin-bottom:14px}.tab{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:750;padding:12px 8px;border-radius:12px}.tab.active{background:var(--card2);color:white;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+    .card{background:rgba(20,20,25,.9);border:1px solid var(--border);border-radius:22px;padding:18px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}label{display:block;color:var(--muted);font-size:13px;font-weight:650;margin-bottom:10px}.money-input{display:flex;align-items:center;background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:0 16px}.money-input:focus-within{border-color:rgba(37,244,238,.55);box-shadow:0 0 0 4px rgba(37,244,238,.08)}.prefix{color:var(--muted);font-size:21px;font-weight:700;margin-right:9px}input{width:100%;border:0;outline:0;background:transparent;color:white;font-size:29px;font-weight:800;padding:18px 0;letter-spacing:-.5px}input::placeholder{color:#4d4d58}.formula{display:flex;justify-content:space-between;gap:12px;margin-top:13px;color:var(--muted);font-size:12px}
+    .results{display:grid;gap:12px;margin-top:14px}.result{background:rgba(20,20,25,.9);border:1px solid var(--border);border-radius:22px;padding:19px}.result.main{border-color:rgba(66,229,141,.22);background:linear-gradient(145deg,rgba(66,229,141,.10),rgba(20,20,25,.92) 55%)}.result-label{color:var(--muted);font-size:13px;margin-bottom:8px}.result-value{font-size:28px;font-weight:850;letter-spacing:-.7px}.main .result-value{color:var(--green);font-size:34px}.breakdown{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mini{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px}.mini-label{color:var(--muted);font-size:12px;margin-bottom:7px}.mini-value{font-size:18px;font-weight:750;word-break:break-word}.footer{text-align:center;color:#5e5e69;font-size:11px;margin-top:18px}.hidden{display:none}
+    @media(max-width:360px){h1{font-size:27px}.result-value{font-size:24px}.main .result-value{font-size:30px}.mini-value{font-size:16px}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <div class="brand"><div class="eyebrow">Sales Calculator</div><h1>Kalkulator Admin TikTok</h1><p class="subtitle">Hitung hasil bersih atau cari harga jual dari target bersih.</p></div>
+
+  <div class="tabs">
+    <button class="tab active" data-mode="sale">Harga Jual → Bersih</button>
+    <button class="tab" data-mode="target">Target Bersih → Jual</button>
+  </div>
+
+  <section id="saleMode">
+    <div class="card">
+      <label for="saleInput">Harga Jual</label>
+      <div class="money-input"><span class="prefix">Rp</span><input id="saleInput" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+      <div class="formula"><span>Admin: 11,13% − Rp21.250</span><span id="effectiveRate">0%</span></div>
+    </div>
+    <div class="results">
+      <div class="result main"><div class="result-label">Bersih Diterima</div><div class="result-value" id="saleNet">Rp0</div></div>
+      <div class="result"><div class="result-label">Total Biaya Admin</div><div class="result-value" id="saleAdmin">Rp0</div></div>
+      <div class="breakdown">
+        <div class="mini"><div class="mini-label">11,13% dari harga</div><div class="mini-value" id="salePercent">Rp0</div></div>
+        <div class="mini"><div class="mini-label">Potongan tetap</div><div class="mini-value">− Rp21.250</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="targetMode" class="hidden">
+    <div class="card">
+      <label for="targetInput">Target Bersih yang Ingin Diterima</label>
+      <div class="money-input"><span class="prefix">Rp</span><input id="targetInput" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+      <div class="formula"><span>Harga dihitung balik dari rumus admin</span><span>11,13%</span></div>
+    </div>
+    <div class="results">
+      <div class="result main"><div class="result-label">Harga Jual yang Harus Dipasang</div><div class="result-value" id="targetSale">Rp0</div></div>
+      <div class="result"><div class="result-label">Estimasi Biaya Admin</div><div class="result-value" id="targetAdmin">Rp0</div></div>
+      <div class="breakdown">
+        <div class="mini"><div class="mini-label">Target bersih</div><div class="mini-value" id="targetNet">Rp0</div></div>
+        <div class="mini"><div class="mini-label">Admin efektif</div><div class="mini-value" id="targetRate">0%</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Rumus: (Harga Jual × 11,13%) − Rp21.250</div>
+</main>
+<script>
+const RATE=.1113, DISCOUNT=21250;
+const rupiah=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
+const numeric=v=>Number(v.replace(/\D/g,''))||0;
+function formatInput(el){const n=numeric(el.value);el.value=n?n.toLocaleString('id-ID'):'';return n}
+
+const saleInput=document.getElementById('saleInput');
+saleInput.addEventListener('input',()=>{
+  const price=formatInput(saleInput);
+  const percent=price*RATE;
+  const admin=price>0?Math.max(0,percent-DISCOUNT):0;
+  const net=price-admin;
+  document.getElementById('salePercent').textContent=rupiah(percent);
+  document.getElementById('saleAdmin').textContent=rupiah(admin);
+  document.getElementById('saleNet').textContent=rupiah(net);
+  document.getElementById('effectiveRate').textContent=(price?admin/price*100:0).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'% efektif';
+});
+
+const targetInput=document.getElementById('targetInput');
+targetInput.addEventListener('input',()=>{
+  const target=formatInput(targetInput);
+  // target = sale - (sale*RATE - DISCOUNT) = sale*(1-RATE) + DISCOUNT
+  // sale = (target - DISCOUNT)/(1-RATE)
+  let sale=target>DISCOUNT?(target-DISCOUNT)/(1-RATE):target;
+  sale=Math.ceil(sale);
+  const admin=sale>0?Math.max(0,sale*RATE-DISCOUNT):0;
+  const net=sale-admin;
+  document.getElementById('targetSale').textContent=rupiah(sale);
+  document.getElementById('targetAdmin').textContent=rupiah(admin);
+  document.getElementById('targetNet').textContent=rupiah(net);
+  document.getElementById('targetRate').textContent=(sale?admin/sale*100:0).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  const target=tab.dataset.mode==='target';
+  document.getElementById('saleMode').classList.toggle('hidden',target);
+  document.getElementById('targetMode').classList.toggle('hidden',!target);
+  setTimeout(()=>document.getElementById(target?'targetInput':'saleInput').focus(),100);
+}));
+
+if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'))}
+</script>
+</body>
+</html>
