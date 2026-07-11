@@ -1,9 +1,17 @@
 {
-  "name": "Kalkulator Admin TikTok",
-  "short_name": "TikTok Admin",
+  "name": "TikTok Admin by NJP",
+  "short_name": "TikTok Admin by NJP",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#08080b",
   "theme_color": "#08080b",
-  "description": "Hitung biaya admin TikTok, hasil bersih, dan harga jual dari target bersih."
+  "description": "Kalkulator biaya admin TikTok by NJP",
+  "icons": [
+    {
+      "src": "./logo1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
 }
