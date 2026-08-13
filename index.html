@@ -49,7 +49,13 @@
     .roi-card .money-input input{padding:8px 0;font-size:25px}
     .roi-card .prefix{font-size:19px}
     .roi-card .formula{margin-top:7px}
- </style>
+ 
+.roi-controls{display:flex;align-items:center;gap:8px;width:100%}
+.roi-controls .money-input{flex:1;min-width:0}
+.roi-presets{display:flex;gap:6px}
+.roi-preset{border:1px solid rgba(255,255,255,.10);background:#1b1b22;color:#9696a3;border-radius:10px;padding:8px 10px;font:inherit;font-size:12px;font-weight:800;line-height:1;min-width:34px}
+.roi-preset:active,.roi-preset.active{background:#25f4ee;color:#08080b;border-color:#25f4ee}
+</style>
 </head>
 <body>
 <main class="app">
@@ -68,7 +74,10 @@
     </div>
     <div class="card roi-card" style="margin-top:14px">
       <label for="roiInput">ROI Iklan</label>
-      <div class="money-input"><span class="prefix">×</span><input id="roiInput" type="number" inputmode="decimal" min="0" max="20" step="0.1" value="20" placeholder="20"></div>
+      <div class="roi-controls">
+<div class="money-input"><span class="prefix">×</span><input id="roiInput" type="number" inputmode="decimal" min="0" max="20" step="0.1" value="0" placeholder="0"></div>
+<div class="roi-presets"><button type="button" class="roi-preset active" data-target="roiInput" data-value="0">0</button><button type="button" class="roi-preset" data-target="roiInput" data-value="20">20</button></div>
+</div>
       <div class="formula"><span>ROI 0 = tanpa biaya iklan • ROI 20 = iklan 5%</span><span id="adRate">5%</span></div>
     </div>
     <div class="results">
@@ -89,7 +98,10 @@
     </div>
     <div class="card roi-card" style="margin-top:14px">
       <label for="targetRoiInput">ROI Iklan</label>
-      <div class="money-input"><span class="prefix">×</span><input id="targetRoiInput" type="number" inputmode="decimal" min="0" max="20" step="0.1" value="20" placeholder="20"></div>
+      <div class="roi-controls">
+<div class="money-input"><span class="prefix">×</span><input id="targetRoiInput" type="number" inputmode="decimal" min="0" max="20" step="0.1" value="0" placeholder="0"></div>
+<div class="roi-presets"><button type="button" class="roi-preset active" data-target="targetRoiInput" data-value="0">0</button><button type="button" class="roi-preset" data-target="targetRoiInput" data-value="20">20</button></div>
+</div>
       <div class="formula"><span>ROI 0 = tanpa biaya iklan • ROI 20 = iklan 5%</span><span id="targetAdRateValue">5%</span></div>
     </div>
     <div class="results">
@@ -155,9 +167,9 @@ function calculateTarget(){
       const denominator=1-RATE-(1/roi);
 
       if(denominator<=0){
-        document.getElementById('targetSale').textContent='RUGI WOI INI 100% BIAYA IKLANNYA';
-        document.getElementById('targetAdmin').textContent='RUGI WOI INI 100% BIAYA IKLANNYA';
-        document.getElementById('targetAdCost').textContent='RUGI WOI INI 100% BIAYA IKLANNYA';
+        document.getElementById('targetSale').textContent='ROI terlalu rendah';
+        document.getElementById('targetAdmin').textContent='Tidak bisa mencapai target';
+        document.getElementById('targetAdCost').textContent='Naikkan ROI';
         document.getElementById('targetAdRate').textContent='—';
         document.getElementById('targetAdRateValue').textContent=(100/roi).toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
         return;
@@ -186,6 +198,15 @@ targetRoiInput.addEventListener('input',()=>{
   calculateTarget();
 });
 
+document.querySelectorAll('.roi-preset').forEach(button=>{
+button.addEventListener('click',()=>{
+const input=document.getElementById(button.dataset.target);
+input.value=button.dataset.value;
+input.dispatchEvent(new Event('input'));
+button.parentElement.querySelectorAll('.roi-preset').forEach(b=>b.classList.remove('active'));
+button.classList.add('active');
+});
+});
 calculateSale();
 calculateTarget();
 
