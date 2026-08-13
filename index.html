@@ -40,6 +40,15 @@
 #salePercent {
   color: #D9A441;
 }
+ 
+    #salePercent { color: #D9A441; }
+    
+    .roi-card{padding:12px 18px !important}
+    .roi-card label{margin-bottom:6px}
+    .roi-card .money-input{height:58px}
+    .roi-card .money-input input{padding:8px 0;font-size:25px}
+    .roi-card .prefix{font-size:19px}
+    .roi-card .formula{margin-top:7px}
  </style>
 </head>
 <body>
@@ -57,9 +66,14 @@
       <div class="money-input"><span class="prefix">Rp</span><input id="saleInput" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
       <div class="formula"><span>Admin: 11,13% + Rp21.250</span><span id="effectiveRate">0%</span></div>
     </div>
+    <div class="card roi-card" style="margin-top:14px">
+      <label for="roiInput">ROI Iklan</label>
+      <div class="money-input"><span class="prefix">×</span><input id="roiInput" type="number" inputmode="decimal" min="0" max="20" step="0.1" value="20" placeholder="20"></div>
+      <div class="formula"><span>ROI 0 = tanpa biaya iklan • ROI 20 = iklan 5%</span><span id="adRate">5%</span></div>
+    </div>
     <div class="results">
       <div class="result main"><div class="result-label">Hasil Bersih</div><div class="result-value" id="saleNet">Rp0</div></div>
-      <div class="result"><div class="result-label">Total Biaya Admin</div><div class="result-value" id="saleAdmin">Rp0</div></div>
+      <div class="result"><div class="result-label">Total Biaya Admin</div><div class="result-value" id="saleAdmin">Rp0</div></div><div class="result"><div class="result-label">Biaya Iklan</div><div class="result-value" id="saleAdCost">Rp0</div></div>
       <div class="breakdown">
         <div class="mini"><div class="mini-label">11,13% dari harga</div><div class="mini-value" id="salePercent">Rp0</div></div>
         <div class="mini"><div class="mini-label">Admin tetap</div><div class="mini-value">Rp21.250</div></div>
@@ -71,11 +85,16 @@
     <div class="card">
       <label for="targetInput">Target Bersih yang Ingin Diterima</label>
       <div class="money-input"><span class="prefix">Rp</span><input id="targetInput" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-      <div class="formula"><span>Harga dihitung balik dari rumus admin</span><span>11,13%</span></div>
+      <div class="formula"><span>Admin + iklan dari harga jual</span><span id="targetAdRate">0%</span></div>
+    </div>
+    <div class="card roi-card" style="margin-top:14px">
+      <label for="targetRoiInput">ROI Iklan</label>
+      <div class="money-input"><span class="prefix">×</span><input id="targetRoiInput" type="number" inputmode="decimal" min="0" max="20" step="0.1" value="20" placeholder="20"></div>
+      <div class="formula"><span>ROI 0 = tanpa biaya iklan • ROI 20 = iklan 5%</span><span id="targetAdRateValue">5%</span></div>
     </div>
     <div class="results">
       <div class="result main"><div class="result-label">Harga Jual yang Harus Dipasang (Pembulatan ke atas)</div><div class="result-value" id="targetSale">Rp0</div></div>
-      <div class="result"><div class="result-label">Total Biaya Admin</div><div class="result-value" id="targetAdmin">Rp0</div></div>
+      <div class="result"><div class="result-label">Total Biaya Admin</div><div class="result-value" id="targetAdmin">Rp0</div></div><div class="result"><div class="result-label">Biaya Iklan</div><div class="result-value" id="targetAdCost">Rp0</div></div>
       <div class="breakdown">
       </div>
     </div>
@@ -90,31 +109,85 @@ const numeric=v=>Number(v.replace(/\D/g,''))||0;
 function formatInput(el){const n=numeric(el.value);el.value=n?n.toLocaleString('id-ID'):'';return n}
 
 const saleInput=document.getElementById('saleInput');
-saleInput.addEventListener('input',()=>{
+const roiInput=document.getElementById('roiInput');
+
+function calculateSale(){
   const price=formatInput(saleInput);
   const percent=price*RATE;
   const admin=price>0?percent+DISCOUNT:0;
-  const net=price-admin;
+  const roi=Math.min(20,Math.max(0,Number(roiInput.value)||0));
+  const adCost=price>0&&roi>0?price/roi:0;
+  const net=price-admin-adCost;
+
   document.getElementById('salePercent').textContent=rupiah(percent);
   document.getElementById('saleAdmin').textContent=rupiah(admin);
+  document.getElementById('saleAdCost').textContent=rupiah(adCost);
   document.getElementById('saleNet').textContent=rupiah(net);
-  document.getElementById('effectiveRate').textContent=(price?admin/price*100:0).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'% total';
+  const adminRate=price?admin/price*100:0;
+  const adRatePercent=roi>0?100/roi:0;
+  document.getElementById('effectiveRate').textContent=(adminRate+adRatePercent).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'% total';
+  document.getElementById('adRate').textContent=adRatePercent.toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
+}
+
+saleInput.addEventListener('input',calculateSale);
+
+roiInput.addEventListener('input',()=>{
+  let v=Number(roiInput.value);
+  if(v>20) roiInput.value=20;
+  if(v<0 && roiInput.value!=='') roiInput.value=0;
+  calculateSale();
 });
 
 const targetInput=document.getElementById('targetInput');
-targetInput.addEventListener('input',()=>{
+const targetRoiInput=document.getElementById('targetRoiInput');
+
+function calculateTarget(){
   const target=formatInput(targetInput);
-  // target = sale - (sale*RATE + DISCOUNT) = sale*(1-RATE) - DISCOUNT
-  // sale = (target + DISCOUNT)/(1-RATE)
-  let sale=target>0?(target+DISCOUNT)/(1-RATE):0;
-  sale=Math.ceil(sale);
-  const admin=sale>0?sale*RATE+DISCOUNT:0;
-  const net=sale-admin;
+  const roi=Math.min(20,Math.max(0,Number(targetRoiInput.value)||0));
+
+  let sale=0, admin=0, adCost=0;
+
+  if(target>0){
+    if(roi===0){
+      sale=Math.ceil((target+DISCOUNT)/(1-RATE));
+      admin=sale*RATE+DISCOUNT;
+    } else {
+      const denominator=1-RATE-(1/roi);
+
+      if(denominator<=0){
+        document.getElementById('targetSale').textContent='RUGI WOI INI 100% BIAYA IKLANNYA';
+        document.getElementById('targetAdmin').textContent='RUGI WOI INI 100% BIAYA IKLANNYA';
+        document.getElementById('targetAdCost').textContent='RUGI WOI INI 100% BIAYA IKLANNYA';
+        document.getElementById('targetAdRate').textContent='—';
+        document.getElementById('targetAdRateValue').textContent=(100/roi).toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
+        return;
+      }
+
+      sale=Math.ceil((target+DISCOUNT)/denominator);
+      admin=sale*RATE+DISCOUNT;
+      adCost=sale/roi;
+    }
+  }
+
   document.getElementById('targetSale').textContent=rupiah(sale);
   document.getElementById('targetAdmin').textContent=rupiah(admin);
-  document.getElementById('targetNet').textContent=rupiah(net);
-  document.getElementById('targetRate').textContent=(sale?admin/sale*100:0).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  document.getElementById('targetAdCost').textContent=rupiah(adCost);
+  const totalRate=sale?(admin/sale*100)+(roi>0?100/roi:0):0;
+  document.getElementById('targetAdRate').textContent=totalRate.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'% total';
+  document.getElementById('targetAdRateValue').textContent=(roi>0?(100/roi):0).toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
+}
+
+targetInput.addEventListener('input',calculateTarget);
+
+targetRoiInput.addEventListener('input',()=>{
+  let v=Number(targetRoiInput.value);
+  if(v>20) targetRoiInput.value=20;
+  if(v<0 && targetRoiInput.value!=='') targetRoiInput.value=0;
+  calculateTarget();
 });
+
+calculateSale();
+calculateTarget();
 
 document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
