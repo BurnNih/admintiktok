@@ -55,11 +55,12 @@
 .roi-presets{display:flex;gap:6px}
 .roi-preset{border:1px solid rgba(255,255,255,.10);background:#1b1b22;color:#9696a3;border-radius:10px;padding:8px 10px;font:inherit;font-size:12px;font-weight:800;line-height:1;min-width:34px}
 .roi-preset:active,.roi-preset.active{background:#25f4ee;color:#08080b;border-color:#25f4ee}
+.fee-orange{color:#D9A441 !important}
 </style>
 </head>
 <body>
 <main class="app">
-  <div class="brand"><div class="eyebrow">From NJP For NJP</div><h1>Kalkulator Admin TikTok</h1><p class="subtitle">Memang Mantab si Tiktok ini wkwkwk</p></div>
+  <div class="brand"><div class="eyebrow">From NJP For NJP</div><h1>Kalkulator Admin TikTok</h1><p class="subtitle">Udah Baik-an ni Tiktok ini wkwkwk</p></div>
 
   <div class="tabs">
     <button class="tab active" data-mode="sale">Harga Jual → Hasil Bersih</button>
@@ -70,7 +71,7 @@
     <div class="card">
       <label for="saleInput">Harga Jual</label>
       <div class="money-input"><span class="prefix">Rp</span><input id="saleInput" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-      <div class="formula"><span>Admin: 11,13% + Rp21.250</span><span id="effectiveRate">0%</span></div>
+      <div class="formula"><span>4,63% + 4% (60.000) + 2,5% + 2% (20.000) + 1.250</span><span id="effectiveRate">0%</span></div>
     </div>
     <div class="card roi-card" style="margin-top:14px">
       <label for="roiInput">ROI Iklan</label>
@@ -84,8 +85,8 @@
       <div class="result main"><div class="result-label">Hasil Bersih</div><div class="result-value" id="saleNet">Rp0</div></div>
       <div class="result"><div class="result-label">Total Biaya Admin</div><div class="result-value" id="saleAdmin">Rp0</div></div><div class="result"><div class="result-label">Biaya Iklan</div><div class="result-value" id="saleAdCost">Rp0</div></div>
       <div class="breakdown">
-        <div class="mini"><div class="mini-label">11,13% dari harga</div><div class="mini-value" id="salePercent">Rp0</div></div>
-        <div class="mini"><div class="mini-label">Admin tetap</div><div class="mini-value">Rp21.250</div></div>
+        <div class="mini"><div class="mini-label">4,63% + 2,5%</div><div class="mini-value" id="salePercent">Rp0</div></div>
+        <div class="mini"><div class="mini-label">4% (60.000) + 1.250</div><div class="mini-value" id="saleFixedFees" class="fee-orange">Rp1.250</div></div>
       </div>
     </div>
   </section>
@@ -112,10 +113,10 @@
     </div>
   </section>
 
-  <div class="footer">Rumus: (Harga Jual × 11,13%) + Rp21.250</div>
+  <div class="footer">Rumus: 4,63% + 4% (60.000) + 2,5% + 2% (20.000) + 1.250</div>
 </main>
 <script>
-const RATE=.1113, DISCOUNT=21250;
+const RATE1=.0463,RATE2=.04,CAP2=60000,RATE3=.025,RATE4=.02,CAP4=20000,FIXED=1250;
 const rupiah=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
 const numeric=v=>Number(v.replace(/\D/g,''))||0;
 function formatInput(el){const n=numeric(el.value);el.value=n?n.toLocaleString('id-ID'):'';return n}
@@ -123,22 +124,20 @@ function formatInput(el){const n=numeric(el.value);el.value=n?n.toLocaleString('
 const saleInput=document.getElementById('saleInput');
 const roiInput=document.getElementById('roiInput');
 
+function calcAdmin(price){
+if(price<=0)return 0;
+return price*RATE1+Math.min(price*RATE2,CAP2)+price*RATE3+Math.min(price*RATE4,CAP4)+FIXED;
+}
 function calculateSale(){
-  const price=formatInput(saleInput);
-  const percent=price*RATE;
-  const admin=price>0?percent+DISCOUNT:0;
-  const roi=Math.min(20,Math.max(0,Number(roiInput.value)||0));
-  const adCost=price>0&&roi>0?price/roi:0;
-  const net=price-admin-adCost;
-
-  document.getElementById('salePercent').textContent=rupiah(percent);
-  document.getElementById('saleAdmin').textContent=rupiah(admin);
-  document.getElementById('saleAdCost').textContent=rupiah(adCost);
-  document.getElementById('saleNet').textContent=rupiah(net);
-  const adminRate=price?admin/price*100:0;
-  const adRatePercent=roi>0?100/roi:0;
-  document.getElementById('effectiveRate').textContent=(adminRate+adRatePercent).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'% total';
-  document.getElementById('adRate').textContent=adRatePercent.toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
+const price=formatInput(saleInput),admin=calcAdmin(price),roi=Math.min(20,Math.max(0,Number(roiInput.value)||0)),adCost=price>0&&roi>0?price/roi:0;
+document.getElementById('salePercent').textContent=rupiah(price*(RATE1+RATE3));
+document.getElementById('saleAdmin').textContent=rupiah(admin);
+const capped=price?Math.min(price*RATE2,CAP2)+Math.min(price*RATE4,CAP4)+FIXED:0;document.getElementById('saleFixedFees').textContent=rupiah(capped);
+document.getElementById('saleAdCost').textContent=rupiah(adCost);
+document.getElementById('saleNet').textContent=rupiah(price-admin-adCost);
+const ar=price?admin/price*100:0,adr=roi>0?100/roi:0;
+document.getElementById('effectiveRate').textContent=(ar+adr).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'% total';
+document.getElementById('adRate').textContent=adr.toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
 }
 
 saleInput.addEventListener('input',calculateSale);
@@ -154,39 +153,24 @@ const targetInput=document.getElementById('targetInput');
 const targetRoiInput=document.getElementById('targetRoiInput');
 
 function calculateTarget(){
-  const target=formatInput(targetInput);
-  const roi=Math.min(20,Math.max(0,Number(targetRoiInput.value)||0));
-
-  let sale=0, admin=0, adCost=0;
-
-  if(target>0){
-    if(roi===0){
-      sale=Math.ceil((target+DISCOUNT)/(1-RATE));
-      admin=sale*RATE+DISCOUNT;
-    } else {
-      const denominator=1-RATE-(1/roi);
-
-      if(denominator<=0){
-        document.getElementById('targetSale').textContent='ROI terlalu rendah';
-        document.getElementById('targetAdmin').textContent='Tidak bisa mencapai target';
-        document.getElementById('targetAdCost').textContent='Naikkan ROI';
-        document.getElementById('targetAdRate').textContent='—';
-        document.getElementById('targetAdRateValue').textContent=(100/roi).toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
-        return;
-      }
-
-      sale=Math.ceil((target+DISCOUNT)/denominator);
-      admin=sale*RATE+DISCOUNT;
-      adCost=sale/roi;
-    }
-  }
-
-  document.getElementById('targetSale').textContent=rupiah(sale);
-  document.getElementById('targetAdmin').textContent=rupiah(admin);
-  document.getElementById('targetAdCost').textContent=rupiah(adCost);
-  const totalRate=sale?(admin/sale*100)+(roi>0?100/roi:0):0;
-  document.getElementById('targetAdRate').textContent=totalRate.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'% total';
-  document.getElementById('targetAdRateValue').textContent=(roi>0?(100/roi):0).toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
+const target=formatInput(targetInput),roi=Math.min(20,Math.max(0,Number(targetRoiInput.value)||0));
+const net=x=>x-calcAdmin(x)-(roi>0?x/roi:0);
+let sale=0,admin=0,adCost=0;
+if(target>0){
+if(roi>0 && 1-RATE1-RATE3-1/roi<=0){
+document.getElementById('targetSale').textContent='ROI terlalu rendah';document.getElementById('targetAdmin').textContent='Tidak bisa mencapai target';document.getElementById('targetAdCost').textContent='Naikkan ROI';document.getElementById('targetAdRate').textContent='—';return;
+}
+let lo=0,hi=Math.max(target*3+100000,100000);
+while(net(hi)<target)hi*=2;
+for(let i=0;i<100;i++){const m=(lo+hi)/2;if(net(m)>=target)hi=m;else lo=m;}
+sale=Math.ceil(hi);admin=calcAdmin(sale);adCost=roi>0?sale/roi:0;
+}
+document.getElementById('targetSale').textContent=rupiah(sale);
+document.getElementById('targetAdmin').textContent=rupiah(admin);
+document.getElementById('targetAdCost').textContent=rupiah(adCost);
+const tr=sale?(admin/sale*100)+(roi>0?100/roi:0):0;
+document.getElementById('targetAdRate').textContent=tr.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'% total';
+document.getElementById('targetAdRateValue').textContent=(roi>0?100/roi:0).toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
 }
 
 targetInput.addEventListener('input',calculateTarget);

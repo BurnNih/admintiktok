@@ -1,4 +1,4 @@
-const CACHE = 'tiktok-admin-v12-custom';
+const CACHE = 'tiktok-admin-v14-custom';
 const ASSETS = ['./','./index.html','./manifest.json','./logo1.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
